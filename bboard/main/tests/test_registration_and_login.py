@@ -10,7 +10,7 @@ class Registration_User(StaticLiveServerTestCase):
         super().setUpClass()
         cls.selenium = WebDriver()
 
-    def test_regictration_and_login(self):
+    def test_registration_and_login(self):
         self.selenium.get(self.live_server_url + '')
         register = self.selenium.find_element(By.NAME, 'register')
         register.click()

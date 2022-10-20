@@ -24,6 +24,10 @@ class Rubric(models.Model):
     super_rubric = models.ForeignKey('SuperRubric', on_delete=models.PROTECT, null=True, blank=True,
                                      verbose_name='Надрубрик')
 
+    class Meta:
+        verbose_name = 'Рубрика'
+        verbose_name_plural = 'Рубрики'
+
 
 class SuperRubricManager(models.Manager):
     def get_queryset(self):
