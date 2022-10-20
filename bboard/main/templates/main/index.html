@@ -1,4 +1,21 @@
 {% extends "layout/basic.html" %}
+{% load thumbnail %}
+{% load static %}
 {% block content %}
-<h2>Последние 10 объявлений</h2>
+{% load bootstrap4 %}
+{% if bbs %}
+<ul class="list-unstyled">
+    {% for bb in bbs %}
+    <li class="media my-5 р-3 border">
+        <div class="media-body">
+            <h3><a href="{{ url }}{{ all }}">{{ bb.title }}</a></h3>
+            <div>{{ bb.content }}</div>
+            <p class="text-right font-weight-bold">{{ bb.price }}</p>
+            <p class="text-right font-italic">{{ bb.created_at }}</p>
+            <p></p><img class='mr-3' src="{% static 'main/empty.jpg' %}"></p>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
 {% endblock %}

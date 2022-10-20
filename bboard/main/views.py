@@ -10,18 +10,24 @@ from django.views.generic.edit import UpdateView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
-from .models import AdvUser
-from .forms import ChangeUserInfoForm
+from .models import AdvUser, SubRubric, Bb
+from .forms import ChangeUserInfoForm, SearchForm
 from django.contrib.auth.views import PasswordChangeView
 from django.views.generic.edit import CreateView
 from .forms import RegisterUserForm
 from django.views.generic.base import TemplateView
 from django.core.signing import BadSignature
 from .utilities import signer
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.shortcuts import redirect
+from .forms import BbForm, AIFormSet
 
 
 def index(request):
-    return render(request, 'main/index.html')
+    bbs = Bb.objects.filter(is_active=True)[:10]
+    context = {'bbs': bbs}
+    return render(request, 'main/index.html', context)
 
 
 def other_page(request, page):
@@ -38,7 +44,9 @@ class BBLoginView(LoginView):
 
 @login_required
 def profile(request):
-    return render(request, 'main/profile.html')
+    bbs = Bb.objects.filter(author=request.user.pk)
+    context = {'bbs': bbs}
+    return render(request, 'main/profile.html', context)
 
 
 class BBLogoutView(LoginRequiredMixin, LogoutView):
@@ -93,3 +101,54 @@ def user_activate(request, sign):
         user.is_activated = True
         user.save()
     return render(request, template)
+
+
+def by_rubric(request, pk):
+    rubric = get_object_or_404(SubRubric, pk=pk)
+    bbs = Bb.objects.filter(is_active=True, rubric=pk)
+    if 'keyword' in request.GET:
+        keyword = request.GET['keyword']
+        q = Q(title_icontains=keyword) | Q(content_icontains=keyword)
+        bbs = bbs.filter(q)
+    else:
+        keyword = ''
+    form = SearchForm(initial={'keyword': keyword})
+    paginator = Paginator(bbs, 2)
+    if 'page' in request.GET:
+        page_num = request.GET['page']
+    else:
+        page_num = 1
+    page = paginator.get_page(page_num)
+    context = {'rubric': rubric, 'page': page, 'bbs': page.object_list, 'form': form}
+    return render(request, 'main/by_rubric.html', context)
+
+
+def detail(request, rubric_pk, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    ais = bb.additionalimage_set.all()
+    context = {'bb': bb, 'ais': ais}
+    return render(request, 'main/detail.html', context)
+
+
+def profile_bb_detail(request, rubric_pk, pk):
+    bb = get_object_or_404(Bb, pk=pk)
+    ais = bb.additionalimage_set.all()
+    context = {'bb': bb, 'ais': ais}
+    return render(request, 'main/profile_bb_detail.html', context)
+
+
+@login_required
+def profile_bb_add(request):
+    if request.method == 'POST':
+        form = BbForm(request.POST, request.FILES)
+        if form.is_valid():
+            bb = form.save()
+            formset = AIFormSet(request.POST, request.FILES, instance=bb)
+            if formset.is_valid():
+                formset.save()
+            return redirect('main:profile')
+    else:
+        form = BbForm(initial={'author': request.user.pk})
+        formset = AIFormSet()
+        context = {'form': form, 'formset': formset}
+        return render(request, 'main/profile_bb_add.html', context)
