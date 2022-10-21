@@ -66,7 +66,7 @@ class SubRubric(Rubric):
 
 
 class Bb(models.Model):
-    rubric = models.ForeignKey(SubRubric, on_delete=models.PROTECT, verbose_name='Рубрика')
+    rubric = models.ForeignKey(SubRubric, on_delete=models.PROTECT, verbose_name='Рубрика', null=True, blank=True)
     title = models.CharField(max_length=40, verbose_name='Товар')
     content = models.TextField(verbose_name='Описание')
     price = models.FloatField(default=0, verbose_name='Цена')

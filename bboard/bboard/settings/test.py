@@ -4,8 +4,7 @@ from .base import *
 
 DEBUG = False
 
-if 'test' in sys.argv:
-    DATABASES = {
+DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'bboard_test',
@@ -14,4 +13,4 @@ if 'test' in sys.argv:
             'HOST': 'localhost',
             'PORT': '5432',
         }
-    }
+}
